@@ -7,14 +7,24 @@ export default function GoldTokenApp() {
   const [goldToSell, setGoldToSell] = useState("");
   const [sellValue, setSellValue] = useState(0);
   const [priceRange, setPriceRange] = useState("7d");
-  const goldPrice = 75.33; // USD per gram
+  const [showWallet, setShowWallet] = useState(false);
+  const [activeTab, setActiveTab] = useState("buy");
+
+  const goldPrice = 75.33;
   const priceHistory = {
     "24h": [74.5, 75.1, 75.33],
     "7d": [73.2, 74.0, 75.33],
     "30d": [70.0, 72.5, 75.33]
   };
 
-  const nextStep = () => setStep((s) => s + 1);
+  const nextStep = () => {
+    if (step < 3) {
+      setStep(step + 1);
+    } else {
+      setStep(4);
+    }
+  };
+
   const prevStep = () => setStep((s) => s - 1);
 
   const handleBuyChange = (e) => {
@@ -42,32 +52,32 @@ export default function GoldTokenApp() {
     </div>
   );
 
-const StepImage = ({ step }) => {
-  const images = [
-    "https://www.logoai.com/uploads/icon/2017/07/03/14990782657194371.svg",
-    "https://img.freepik.com/premium-vector/ethereum-vector-coin_1078-322.jpg?semt=ais_hybrid&w=740",
-    "https://media.istockphoto.com/id/1325041603/photo/graph-icon.jpg?s=612x612&w=0&k=20&c=JlscaFx5Zd3Bi6dkYMyja-2uVmHxIEgkeH-G5kGeIHk=",
-    "https://atlas-content-cdn.pixelsquid.com/stock-images/gold-icon-settings-computer-9K81AD4-600.jpg"
-  ];
-  const fallbackEmojis = ["📱", "🏦", "💰", "⚙️"];
+  const StepImage = ({ step }) => {
+    const images = [
+      "https://www.logoai.com/uploads/icon/2017/07/03/14990782657194371.svg",
+      "https://img.freepik.com/premium-vector/ethereum-vector-coin_1078-322.jpg?semt=ais_hybrid&w=740",
+      "https://media.istockphoto.com/id/1325041603/photo/graph-icon.jpg?s=612x612&w=0&k=20&c=JlscaFx5Zd3Bi6dkYMyja-2uVmHxIEgkeH-G5kGeIHk=",
+      "https://atlas-content-cdn.pixelsquid.com/stock-images/gold-icon-settings-computer-9K81AD4-600.jpg"
+    ];
+    const fallbackEmojis = ["📱", "🏦", "💰", "⚙️"];
+
+    return (
+      <div className="text-center">
+        <img
+          src={images[step]}
+          alt={`Step ${step}`}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.replaceWith(document.createTextNode(fallbackEmojis[step]));
+          }}
+          className="mx-auto w-auto h-auto object-contain"
+        />
+      </div>
+    );
+  };
 
   return (
-    <div className="text-center">
-      <img
-        src={images[step]}
-        alt={`Step ${step}`}
-        onError={(e) => {
-          e.target.onerror = null;
-          e.target.replaceWith(document.createTextNode(fallbackEmojis[step]));
-        }}
-        className="mx-auto w-auto h-100 object-contain"
-      />
-    </div>
-  );
-};
-
-  return (
-    <div className="relative min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100 text-gray-900 flex items-center justify-center p-4 overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100 text-gray-900 flex flex-col justify-between p-4 overflow-hidden">
       <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
         <svg width="100%" height="100%">
           <defs>
@@ -79,165 +89,197 @@ const StepImage = ({ step }) => {
         </svg>
       </div>
 
-      <div className="relative z-10 w-full max-w-md space-y-6">
-        {step <= 3 && <StepIndicator />}
+      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center">
+        <button className="p-2 rounded-full bg-white shadow-md">
+          <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.4-1.4C18.8 15.2 18 13.5 18 12V8a6 6 0 00-12 0v4c0 1.5-.8 3.2-1.6 3.6L3 17h5m6 0v1a3 3 0 11-6 0v-1h6z" />
+          </svg>
+        </button>
+        <div className="w-9 h-9 rounded-full bg-yellow-500 text-white flex items-center justify-center font-semibold shadow-md">
+          U
+        </div>
+      </div>
 
-        {step === 0 && (
-          <div className="text-center space-y-4">
-            <h1 className="text-3xl font-bold text-yellow-600">GoldToken</h1>
-            <StepImage step={step} />
-            <p>Own, Trade & Pay with Real Gold</p>
-            <button
-              onClick={nextStep}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-xl"
-            >
-              Get Started
-            </button>
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">What is Tokenized Gold?</h2>
-            <StepImage step={step} />
-            <p>
-              Tokenized gold = real gold on the blockchain. Buy fractions,
-              store safely, trade easily.
-            </p>
-            <div className="flex justify-between">
-              <button onClick={prevStep} className="text-yellow-700">Back</button>
-              <button onClick={nextStep} className="bg-yellow-500 text-white px-4 py-2 rounded-xl">Next</button>
+      <div className="relative z-10 w-full max-w-md mx-auto space-y-6 pt-12">
+        {/* Steps */}
+        {step <= 3 && (
+          <>
+            <StepIndicator />
+            <div className="space-y-4">
+              <StepImage step={step} />
+              {step === 0 && <><h2 className="text-xl font-bold text-center text-yellow-600">Welcome to GoldToken</h2><p className="text-center">Buy and manage tokenized fiscal gold securely and easily.</p></>}
+              {step === 1 && <><h2 className="text-xl font-bold text-center text-yellow-600">Store & Transact</h2><p className="text-center">Your gold is stored securely and can be used for payments or exchanged anytime.</p></>}
+              {step === 2 && <><h2 className="text-xl font-bold text-center text-yellow-600">Real-Time Prices</h2><p className="text-center">Monitor the live price of gold tokens to make smart decisions.</p></>}
+              {step === 3 && <><h2 className="text-xl font-bold text-center text-yellow-600">Get Started</h2><p className="text-center">You're ready to buy and sell gold tokens!</p></>}
+              <div className="flex justify-between mt-6">
+                {step > 0 && <button onClick={prevStep} className="px-4 py-2 rounded bg-gray-200 text-gray-800">Back</button>}
+                <button onClick={nextStep} className="ml-auto px-4 py-2 rounded bg-yellow-500 text-white">{step === 3 ? "Start" : "Next"}</button>
+              </div>
             </div>
-          </div>
+          </>
         )}
 
-        {step === 2 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Why Use It?</h2>
-            <StepImage step={step} />
-            <ul className="list-disc pl-5">
-              <li>Hedge against inflation</li>
-              <li>Global asset, digital ease</li>
-              <li>Fully backed, audited gold</li>
-            </ul>
-            <div className="flex justify-between">
-              <button onClick={prevStep} className="text-yellow-700">Back</button>
-              <button onClick={nextStep} className="bg-yellow-500 text-white px-4 py-2 rounded-xl">Next</button>
+        {/* Main Interface */}
+        {step > 3 && !showWallet && (
+          <>
+            <div className="flex justify-center space-x-4 mb-4">
+              <button
+                onClick={() => setActiveTab("buy")}
+                className={`px-4 py-2 rounded-full ${
+                  activeTab === "buy"
+                    ? "bg-yellow-500 text-white"
+                    : "bg-white border text-yellow-700"
+                }`}
+              >
+                Buy
+              </button>
+              <button
+                onClick={() => setActiveTab("sell")}
+                className={`px-4 py-2 rounded-full ${
+                  activeTab === "sell"
+                    ? "bg-yellow-500 text-white"
+                    : "bg-white border text-yellow-700"
+                }`}
+              >
+                Sell
+              </button>
+              <button
+                onClick={() => setActiveTab("pay")}
+                className={`px-4 py-2 rounded-full ${
+                  activeTab === "pay"
+                    ? "bg-yellow-500 text-white"
+                    : "bg-white border text-yellow-700"
+                }`}
+              >
+                Pay
+              </button>
             </div>
-          </div>
+
+            {activeTab === "buy" && (
+              <>
+                <h2 className="text-xl font-bold text-center text-yellow-600">Buy Gold</h2>
+                <input
+                  type="number"
+                  placeholder="Enter USD"
+                  value={usd}
+                  onChange={handleBuyChange}
+                  className="w-full p-2 border rounded"
+                />
+                <p className="text-center mt-2">
+                  You will get <strong>{goldToBuy.toFixed(4)}</strong> grams of gold
+                </p>
+              </>
+            )}
+
+            {activeTab === "sell" && (
+              <>
+                <h2 className="text-xl font-bold text-center text-yellow-600 mt-6">Sell Gold</h2>
+                <input
+                  type="number"
+                  placeholder="Grams to sell"
+                  value={goldToSell}
+                  onChange={handleSellChange}
+                  className="w-full p-2 border rounded"
+                />
+                <p className="text-center mt-2">
+                  You will receive <strong>${sellValue.toFixed(2)}</strong>
+                </p>
+              </>
+            )}
+
+            {activeTab === "pay" && (
+              <>
+                <h2 className="text-xl font-bold text-center text-yellow-600 mt-6">Pay with Gold Token</h2>
+                <div className="flex justify-center mt-4">
+                  <div className="bg-white p-4 rounded-xl shadow-lg border border-yellow-300">
+                    {/* Sample QR code image - replace src with your actual QR code URL or dynamically generate */}
+                    <img
+                      src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=goldtoken-payment"
+                      alt="QR Code"
+                      className="w-36 h-36"
+                    />
+                    <p className="text-center mt-2 text-yellow-700 font-semibold">Scan to Pay</p>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
         )}
 
-        {step === 3 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">How It Works</h2>
-            <StepImage step={step} />
-            <p>
-              Buy with fiat or crypto, hold tokens backed by real gold, and
-              sell or send anytime.
-            </p>
-            <div className="flex justify-between">
-              <button onClick={prevStep} className="text-yellow-700">Back</button>
-              <button onClick={nextStep} className="bg-yellow-500 text-white px-4 py-2 rounded-xl">Get Started</button>
+        {/* Wallet */}
+        {showWallet && (
+          <div
+            className={`fixed bottom-20 left-4 right-4 bg-white rounded-3xl p-4 shadow-2xl transition-all duration-500 ease-in-out transform ${
+              showWallet ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
+            } z-30`}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Wallet</h2>
+              <button onClick={() => setShowWallet(false)} className="text-sm text-yellow-600">
+                Close
+              </button>
             </div>
-          </div>
-        )}
 
-        {step === 4 && (
-          <div className="space-y-6">
-            <div className="bg-yellow-100 p-4 rounded-2xl text-center">
-              <h2 className="text-lg font-medium">Your Balance</h2>
+            <div className="bg-yellow-100 p-4 rounded-xl text-center mb-4">
+              <p className="text-sm">Your Balance</p>
               <p className="text-2xl font-bold">3.27 g</p>
               <p className="text-sm text-gray-700">≈ $246.32 USD</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-2">
-              <button onClick={() => setStep(5)} className="bg-yellow-500 text-white py-2 rounded-xl">
-                Buy Gold
-              </button>
-              <button onClick={() => setStep(6)} className="bg-yellow-500 text-white py-2 rounded-xl">
-                Sell Gold
-              </button>
-              <button onClick={() => setStep(7)} className="bg-yellow-500 text-white py-2 rounded-xl">
-                Price Chart
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 5 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Buy Gold</h2>
-            <div className="space-y-2">
-              <label className="block text-sm">Enter amount (USD)</label>
-              <input
-                type="number"
-                value={usd}
-                onChange={handleBuyChange}
-                className="w-full border px-4 py-2 rounded-xl"
-              />
-              <p className="text-sm text-gray-600">Gold Price: ${goldPrice} / g</p>
-              <p className="text-sm">You’ll receive: <strong>{goldToBuy.toFixed(3)} g</strong></p>
-            </div>
-            <div className="flex justify-between">
-              <button onClick={() => setStep(4)}>Back</button>
-              <button className="bg-yellow-500 text-white px-4 py-2 rounded-xl">
-                Confirm Purchase
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 6 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Sell Gold</h2>
-            <div className="space-y-2">
-              <label className="block text-sm">Enter gold amount (g)</label>
-              <input
-                type="number"
-                value={goldToSell}
-                onChange={handleSellChange}
-                className="w-full border px-4 py-2 rounded-xl"
-              />
-              <p className="text-sm text-gray-600">Gold Price: ${goldPrice} / g</p>
-              <p className="text-sm">Est. return: <strong>${sellValue.toFixed(2)}</strong></p>
-            </div>
-            <div className="flex justify-between">
-              <button onClick={() => setStep(4)}>Back</button>
-              <button className="bg-yellow-500 text-white px-4 py-2 rounded-xl">
-                Confirm Sale
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 7 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Gold Price Chart</h2>
-            <div className="flex space-x-2">
-              {["24h", "7d", "30d"].map((range) => (
-                <button
-                  key={range}
-                  className={`px-3 py-1 rounded-full border ${priceRange === range ? "bg-yellow-500 text-white" : "bg-white"}`}
-                  onClick={() => setPriceRange(range)}
-                >
-                  {range}
-                </button>
-              ))}
-            </div>
-            <div className="bg-yellow-100 p-4 rounded-xl">
-              <p className="text-sm">Price History ({priceRange}):</p>
-              <div className="flex space-x-2 mt-2">
-                {priceHistory[priceRange].map((price, i) => (
-                  <div key={i} className="text-xs">${price.toFixed(2)}</div>
+            <div className="bg-yellow-50 p-4 rounded-xl">
+              <p className="text-sm mb-2">Gold Token Value ({priceRange})</p>
+              <div className="flex justify-between mb-2">
+                {["24h", "7d", "30d"].map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setPriceRange(r)}
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      priceRange === r ? "bg-yellow-500 text-white" : "bg-white border"
+                    }`}
+                  >
+                    {r}
+                  </button>
                 ))}
               </div>
+              <div className="flex justify-around text-xs text-gray-700 mb-2">
+                {priceHistory[priceRange].map((p, i) => (
+                  <span key={i}>${p.toFixed(2)}</span>
+                ))}
+              </div>
+              <svg viewBox="0 0 100 40" className="w-full h-20">
+                <polyline
+                  fill="none"
+                  stroke="#facc15"
+                  strokeWidth="2"
+                  points={priceHistory[priceRange]
+                    .map((p, i, arr) => {
+                      const x = (i / (arr.length - 1)) * 100;
+                      const max = Math.max(...arr);
+                      const min = Math.min(...arr);
+                      const y = 40 - ((p - min) / (max - min || 1)) * 30;
+                      return `${x},${y}`;
+                    })
+                    .join(" ")}
+                />
+              </svg>
             </div>
-            <button onClick={() => setStep(4)} className="text-sm text-blue-500">
-              ← Back to Dashboard
-            </button>
           </div>
         )}
       </div>
+
+      {step > 3 && (
+        <div className="z-10 fixed bottom-0 inset-x-0 bg-white border-t rounded-t-3xl px-4 py-2 flex justify-around items-center">
+          <button onClick={() => setStep(0)} className="text-sm text-yellow-700">
+            Home
+          </button>
+          <button
+            onClick={() => setShowWallet(true)}
+            className="bg-yellow-500 text-white px-4 py-1 rounded-full text-sm"
+          >
+            Wallet
+          </button>
+        </div>
+      )}
     </div>
   );
 }
