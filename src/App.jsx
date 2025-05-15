@@ -1,4 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const goldPrice = 75.33;
+const priceHistory = {
+  "24h": [74.5, 75.1, 75.33],
+  "7d": [73.2, 74.0, 75.33],
+  "30d": [70.0, 72.5, 75.33],
+};
+
+const stepImages = [
+  "https://www.logoai.com/uploads/icon/2017/07/03/14990782657194371.svg",
+  "https://img.freepik.com/premium-vector/ethereum-vector-coin_1078-322.jpg?semt=ais_hybrid&w=740",
+  "https://media.istockphoto.com/id/1325041603/photo/graph-icon.jpg?s=612x612&w=0&k=20&c=JlscaFx5Zd3Bi6dkYMyja-2uVmHxIEgkeH-G5kGeIHk=",
+  "https://atlas-content-cdn.pixelsquid.com/stock-images/gold-icon-settings-computer-9K81AD4-600.jpg",
+];
+
+const fallbackEmojis = ["📱", "🏦", "💰", "⚙️"];
 
 export default function GoldTokenApp() {
   const [step, setStep] = useState(0);
@@ -11,18 +27,27 @@ export default function GoldTokenApp() {
   const [activeTab, setActiveTab] = useState("buy");
   const [showQR, setShowQR] = useState(false);
 
-  const goldPrice = 75.33;
-  const priceHistory = {
-    "24h": [74.5, 75.1, 75.33],
-    "7d": [73.2, 74.0, 75.33],
-    "30d": [70.0, 72.5, 75.33],
-  };
+  // Animate chart points drawing
+  const [animatedPoints, setAnimatedPoints] = useState([]);
+
+  useEffect(() => {
+    const data = priceHistory[priceRange];
+    let index = 0;
+    setAnimatedPoints([]);
+    const interval = setInterval(() => {
+      setAnimatedPoints((prev) => [...prev, data[index]]);
+      index++;
+      if (index >= data.length) clearInterval(interval);
+    }, 250);
+    return () => clearInterval(interval);
+  }, [priceRange]);
 
   const nextStep = () => {
     if (step < 3) setStep(step + 1);
     else setStep(4);
   };
-  const prevStep = () => setStep((s) => s - 1);
+
+  const prevStep = () => setStep((s) => Math.max(s - 1, 0));
 
   const handleBuyChange = (e) => {
     const value = e.target.value;
@@ -38,78 +63,48 @@ export default function GoldTokenApp() {
     setSellValue(usdValue || 0);
   };
 
-  const StepIndicator = () => (
-    <div className="flex justify-between mb-6">
-      {[0, 1, 2, 3].map((s) => (
-        <div
-          key={s}
-          className={`flex-1 h-2 mx-1 rounded-full ${
-            step >= s ? "bg-yellow-500" : "bg-gray-200"
-          }`}
-        ></div>
-      ))}
+  const buildPoints = (points) => {
+    if (points.length === 0) return "";
+    const max = Math.max(...priceHistory[priceRange]);
+    const min = Math.min(...priceHistory[priceRange]);
+    return points
+      .map((p, i, arr) => {
+        const x = (i / (arr.length - 1)) * 100;
+        const y = 40 - ((p - min) / (max - min || 1)) * 30;
+        return `${x},${y}`;
+      })
+      .join(" ");
+  };
+
+  const StepImage = ({ step }) => (
+    <div className="mb-4 flex justify-center">
+      <img
+        src={stepImages[step]}
+        alt={`Step ${step + 1}`}
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.replaceWith(document.createTextNode(fallbackEmojis[step]));
+        }}
+        className="w-24 h-24 object-contain drop-shadow-lg"
+      />
     </div>
   );
 
-  const StepImage = ({ step }) => {
-    const images = [
-      "https://www.logoai.com/uploads/icon/2017/07/03/14990782657194371.svg",
-      "https://img.freepik.com/premium-vector/ethereum-vector-coin_1078-322.jpg?semt=ais_hybrid&w=740",
-      "https://media.istockphoto.com/id/1325041603/photo/graph-icon.jpg?s=612x612&w=0&k=20&c=JlscaFx5Zd3Bi6dkYMyja-2uVmHxIEgkeH-G5kGeIHk=",
-      "https://atlas-content-cdn.pixelsquid.com/stock-images/gold-icon-settings-computer-9K81AD4-600.jpg",
-    ];
-    const fallbackEmojis = ["📱", "🏦", "💰", "⚙️"];
-
-    return (
-      <div className="text-center">
-        <img
-          src={images[step]}
-          alt={`Step ${step}`}
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.replaceWith(document.createTextNode(fallbackEmojis[step]));
-          }}
-          className="mx-auto w-auto h-auto object-contain"
-        />
-      </div>
-    );
-  };
-
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100 text-gray-900 flex flex-col justify-between p-4 overflow-hidden">
-      {/* Background grid */}
-      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
-        <svg width="100%" height="100%">
-          <defs>
-            <pattern
-              id="grid"
-              width="80"
-              height="80"
-              patternUnits="userSpaceOnUse"
-            >
-              <circle
-                cx="40"
-                cy="40"
-                r="30"
-                stroke="#facc15"
-                strokeWidth="1"
-                fill="none"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-      </div>
-
-      {/* Top bar */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center">
-        <button className="p-2 rounded-full bg-white shadow-md">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100 text-gray-900 flex flex-col justify-between px-6 py-8 font-sans select-none">
+      {/* Header */}
+      <header className="flex justify-between items-center mb-10">
+        <button
+          aria-label="Notifications"
+          className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition"
+        >
           <svg
-            className="w-5 h-5 text-yellow-600"
+            className="w-6 h-6 text-yellow-600"
             fill="none"
             stroke="currentColor"
-            strokeWidth={2}
+            strokeWidth={2.5}
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -118,148 +113,148 @@ export default function GoldTokenApp() {
             />
           </svg>
         </button>
-        <div className="w-9 h-9 rounded-full bg-yellow-500 text-white flex items-center justify-center font-semibold shadow-md">
+        <div className="w-10 h-10 rounded-full bg-yellow-500 text-white flex items-center justify-center font-semibold text-lg shadow-md">
           U
         </div>
-      </div>
+      </header>
 
-      {/* Main content container */}
-      <div className="relative z-10 w-full max-w-md mx-auto space-y-6 pt-12">
-        {/* Onboarding steps */}
+      {/* Main */}
+      <main className="max-w-md mx-auto w-full space-y-8">
+        {/* Onboarding Steps */}
         {step <= 3 && (
-          <>
-            <StepIndicator />
-            <div className="space-y-4">
-              <StepImage step={step} />
-              {step === 0 && (
+          <section
+            aria-label="Onboarding steps"
+            className="bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center text-center space-y-3"
+          >
+            <div className="flex w-full justify-between space-x-2 mb-8">
+              {[0, 1, 2, 3].map((s) => (
+                <div
+                  key={s}
+                  className={`flex-1 h-3 rounded-full transition-colors duration-300 ${
+                    step >= s ? "bg-yellow-500" : "bg-yellow-200"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <StepImage step={step} />
+
+            {{
+              0: (
                 <>
-                  <h2 className="text-xl font-bold text-center text-yellow-600">
+                  <h2 className="text-3xl font-extrabold text-yellow-600 mb-2">
                     Welcome to GoldToken
                   </h2>
-                  <p className="text-center">
+                  <p className="text-gray-700 max-w-xs leading-relaxed">
                     Buy and manage tokenized fiscal gold securely and easily.
                   </p>
                 </>
-              )}
-              {step === 1 && (
+              ),
+              1: (
                 <>
-                  <h2 className="text-xl font-bold text-center text-yellow-600">
+                  <h2 className="text-3xl font-extrabold text-yellow-600 mb-2">
                     Store &amp; Transact
                   </h2>
-                  <p className="text-center">
+                  <p className="text-gray-700 max-w-xs leading-relaxed">
                     Your gold is stored securely and can be used for payments or
                     exchanged anytime.
                   </p>
                 </>
-              )}
-              {step === 2 && (
+              ),
+              2: (
                 <>
-                  <h2 className="text-xl font-bold text-center text-yellow-600">
+                  <h2 className="text-3xl font-extrabold text-yellow-600 mb-2">
                     Real-Time Prices
                   </h2>
-                  <p className="text-center">
+                  <p className="text-gray-700 max-w-xs leading-relaxed">
                     Monitor the live price of gold tokens to make smart decisions.
                   </p>
                 </>
-              )}
-              {step === 3 && (
+              ),
+              3: (
                 <>
-                  <h2 className="text-xl font-bold text-center text-yellow-600">
+                  <h2 className="text-3xl font-extrabold text-yellow-600 mb-2">
                     Get Started
                   </h2>
-                  <p className="text-center">
+                  <p className="text-gray-700 max-w-xs leading-relaxed">
                     You're ready to buy and sell gold tokens!
                   </p>
                 </>
-              )}
-              <div className="flex justify-between mt-6">
-                {step > 0 && (
-                  <button
-                    onClick={prevStep}
-                    className="px-4 py-2 rounded bg-gray-200 text-gray-800"
-                  >
-                    Back
-                  </button>
-                )}
+              ),
+            }[step]}
+
+            <div className="flex w-full justify-between mt-10">
+              {step > 0 && (
                 <button
-                  onClick={nextStep}
-                  className="ml-auto px-4 py-2 rounded bg-yellow-500 text-white"
+                  onClick={prevStep}
+                  className="px-5 py-3 rounded-full bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition"
                 >
-                  {step === 3 ? "Start" : "Next"}
+                  Back
                 </button>
-              </div>
+              )}
+              <button
+                onClick={nextStep}
+                className="ml-auto px-6 py-3 rounded-full bg-yellow-500 text-white font-semibold shadow-lg hover:bg-yellow-600 transition"
+              >
+                {step === 3 ? "Start" : "Next"}
+              </button>
             </div>
-          </>
+          </section>
         )}
 
-        {/* Buy/Sell/Pay interface, visible after onboarding and wallet closed */}
+        {/* Main App */}
         {step > 3 && !showWallet && (
-          <div className="mx-auto max-w-md rounded-3xl bg-yellow-50 shadow-lg p-6">
-            <div className="flex justify-between space-x-4 mb-6 rounded-2xl bg-yellow-100 p-2">
-              <button
-                onClick={() => {
-                  setActiveTab("buy");
-                  setShowQR(false);
-                }}
-                className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-colors duration-200 ${
-                  activeTab === "buy"
-                    ? "bg-yellow-500 text-white shadow-lg"
-                    : "bg-white text-yellow-700 hover:bg-yellow-200"
-                }`}
-              >
-                Buy
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab("sell");
-                  setShowQR(false);
-                }}
-                className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-colors duration-200 ${
-                  activeTab === "sell"
-                    ? "bg-yellow-500 text-white shadow-lg"
-                    : "bg-white text-yellow-700 hover:bg-yellow-200"
-                }`}
-              >
-                Sell
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab("pay");
-                  setShowQR(true);
-                }}
-                className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-colors duration-200 ${
-                  activeTab === "pay"
-                    ? "bg-yellow-500 text-white shadow-lg"
-                    : "bg-white text-yellow-700 hover:bg-yellow-200"
-                }`}
-              >
-                Pay
-              </button>
-            </div>
+          <section
+            aria-label="Main app interface"
+            className="bg-yellow-50 rounded-3xl shadow-xl p-8 max-w-md mx-auto"
+          >
+            {/* Tabs */}
+            <nav className="flex justify-between mb-6 rounded-xl bg-yellow-100 p-2 shadow-inner">
+              {["buy", "sell", "pay"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setShowQR(false);
+                  }}
+                  className={`flex-1 text-center font-semibold text-sm rounded-xl px-4 py-2 transition-colors duration-300 ${
+                    activeTab === tab
+                      ? "bg-yellow-500 text-white shadow-lg"
+                      : "bg-white text-yellow-700 hover:bg-yellow-200"
+                  }`}
+                  aria-current={activeTab === tab ? "page" : undefined}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </nav>
 
-            <div className="bg-white rounded-2xl p-6 shadow-inner min-h-[220px]">
+            {/* Tab Content */}
+            <div className="bg-white rounded-2xl p-6 shadow-inner min-h-[240px] flex flex-col justify-center">
               {activeTab === "buy" && (
                 <>
-                  <h2 className="text-xl font-bold text-center text-yellow-600 mb-4">
+                  <h2 className="text-2xl font-bold text-yellow-600 mb-5 text-center">
                     Buy Gold
                   </h2>
                   <input
                     type="number"
-                    placeholder="Enter USD"
+                    placeholder="Enter USD amount"
                     value={usd}
                     onChange={handleBuyChange}
-                    className="w-full p-3 border rounded-lg focus:outline-yellow-400 focus:ring-2 focus:ring-yellow-300"
+                    className="w-full p-4 rounded-xl border border-yellow-300 focus:outline-none focus:ring-4 focus:ring-yellow-400 transition"
+                    aria-label="Enter USD amount to buy gold"
                   />
-                  <p className="text-center mt-3 text-gray-700">
-                    You will get <strong>{goldToBuy.toFixed(4)}</strong> grams of
-                    gold
+                  <p className="mt-4 text-center text-gray-700 text-lg font-semibold">
+                    You will get{" "}
+                    <span className="text-yellow-600">{goldToBuy.toFixed(4)}</span>{" "}
+                    grams of gold
                   </p>
                 </>
               )}
 
               {activeTab === "sell" && (
                 <>
-                  <h2 className="text-xl font-bold text-center text-yellow-600 mb-4">
+                  <h2 className="text-2xl font-bold text-yellow-600 mb-5 text-center">
                     Sell Gold
                   </h2>
                   <input
@@ -267,130 +262,172 @@ export default function GoldTokenApp() {
                     placeholder="Grams to sell"
                     value={goldToSell}
                     onChange={handleSellChange}
-                    className="w-full p-3 border rounded-lg focus:outline-yellow-400 focus:ring-2 focus:ring-yellow-300"
+                    className="w-full p-4 rounded-xl border border-yellow-300 focus:outline-none focus:ring-4 focus:ring-yellow-400 transition"
+                    aria-label="Enter grams of gold to sell"
                   />
-                  <p className="text-center mt-3 text-gray-700">
-                    You will receive <strong>${sellValue.toFixed(2)}</strong>
+                  <p className="mt-4 text-center text-gray-700 text-lg font-semibold">
+                    You will receive{" "}
+                    <span className="text-yellow-600">${sellValue.toFixed(2)}</span>
                   </p>
                 </>
               )}
 
               {activeTab === "pay" && showQR && (
                 <div className="flex flex-col items-center justify-center">
-                  <h2 className="text-xl font-bold text-yellow-600 mb-6">
+                  <h2 className="text-2xl font-bold text-yellow-600 mb-6 text-center">
                     Pay with Gold
                   </h2>
                   <img
-                    src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=goldtoken-payment"
-                    alt="QR Code"
-                    className="border p-2 rounded-lg shadow-md"
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=goldtoken-payment"
+                    alt="GoldToken payment QR code"
+                    className="border p-3 rounded-2xl shadow-lg"
                   />
-                  <p className="mt-4 text-center text-gray-700">
+                  <p className="mt-5 text-gray-700 max-w-xs text-center leading-relaxed">
                     Scan this QR code to complete your payment.
                   </p>
                   <button
                     onClick={() => setShowQR(false)}
-                    className="mt-6 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition"
+                    className="mt-8 px-6 py-3 rounded-full bg-yellow-500 text-white font-semibold shadow hover:bg-yellow-600 transition"
                   >
                     Close QR
                   </button>
                 </div>
               )}
+
+              {activeTab === "pay" && !showQR && (
+                <div className="flex justify-center items-center h-full text-yellow-600 font-semibold italic">
+                  <p>Tap "Show QR" to pay with GoldToken.</p>
+                  <button
+                    onClick={() => setShowQR(true)}
+                    className="ml-4 px-5 py-2 bg-yellow-500 text-white rounded-lg font-bold shadow hover:bg-yellow-600 transition"
+                    aria-label="Show payment QR code"
+                  >
+                    Show QR
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
+
+            {/* Price Chart */}
+            <section
+              aria-label="Gold price chart"
+              className="mt-10 bg-white rounded-3xl p-6 shadow-lg"
+            >
+              <h3 className="text-lg font-semibold text-yellow-600 mb-4">
+                Gold Price - Last {priceRange.toUpperCase()}
+              </h3>
+              <div className="flex justify-between mb-3 text-yellow-700 font-semibold">
+                {["24h", "7d", "30d"].map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setPriceRange(range)}
+                    className={`text-sm px-3 py-1 rounded-full transition ${
+                      priceRange === range
+                        ? "bg-yellow-500 text-white shadow"
+                        : "hover:bg-yellow-200"
+                    }`}
+                  >
+                    {range.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+
+              <svg
+                viewBox="0 0 100 40"
+                className="w-full h-24"
+                aria-hidden="true"
+                role="img"
+                preserveAspectRatio="none"
+              >
+                <polyline
+                  fill="none"
+                  stroke="#fbbf24"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  points={buildPoints(animatedPoints)}
+                  style={{ transition: "all 0.3s ease-in-out" }}
+                />
+                <line
+                  x1="0"
+                  y1="40"
+                  x2="100"
+                  y2="40"
+                  stroke="#fbbf24"
+                  strokeWidth="1"
+                />
+              </svg>
+              <p className="text-center text-yellow-700 mt-2 font-medium">
+                Current Price: <span className="font-bold">${goldPrice}</span> per gram
+              </p>
+            </section>
+
+            {/* Wallet Button */}
+            <button
+              onClick={() => setShowWallet(true)}
+              className="mt-8 w-full bg-yellow-600 text-white font-bold py-3 rounded-2xl shadow-lg hover:bg-yellow-700 transition"
+              aria-label="Open wallet"
+            >
+              Open Wallet
+            </button>
+          </section>
         )}
 
-        {/* Wallet panel (thin, fixed above bottom bar) */}
+        {/* Wallet Popup */}
         {showWallet && (
           <div
-            className={`fixed bottom-20 left-4 right-4 bg-white rounded-3xl p-4 shadow-2xl transition-all duration-500 ease-in-out transform z-30
-              ${showWallet ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="walletTitle"
+            className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-center items-center p-4 z-50"
           >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Wallet</h2>
+            <div className="bg-yellow-50 rounded-3xl shadow-2xl max-w-md w-full p-8 relative">
+              <h2
+                id="walletTitle"
+                className="text-2xl font-extrabold text-yellow-600 mb-6 text-center"
+              >
+                Your GoldToken Wallet
+              </h2>
+              <p className="text-gray-700 text-center mb-10">
+                Balance:{" "}
+                <span className="font-semibold text-yellow-600">23.45g</span> (~$
+                {(23.45 * goldPrice).toFixed(2)})
+              </p>
               <button
                 onClick={() => setShowWallet(false)}
-                className="text-yellow-600 hover:text-yellow-800 font-bold text-xl"
                 aria-label="Close wallet"
+                className="absolute top-5 right-5 text-yellow-600 hover:text-yellow-800 transition"
               >
-                ×
-              </button>
-            </div>
-
-            <div className="flex justify-between items-center mb-4 px-3 py-2 bg-yellow-50 rounded-xl">
-              <div>
-                <p className="text-yellow-600 font-bold text-lg">
-                  1200 <span className="text-yellow-400">GOLD</span>
-                </p>
-                <p className="text-sm text-yellow-500">~ $90,399.25</p>
-              </div>
-              <button className="bg-yellow-500 px-3 py-1 rounded-full text-white font-semibold text-sm">
-                Buy more
-              </button>
-            </div>
-
-            {/* Price Range Buttons */}
-            <div className="flex justify-center space-x-4 mb-4">
-              {["24h", "7d", "30d"].map((range) => (
-                <button
-                  key={range}
-                  onClick={() => setPriceRange(range)}
-                  className={`px-4 py-1 rounded-full text-sm font-semibold transition ${
-                    priceRange === range
-                      ? "bg-yellow-500 text-white shadow-lg"
-                      : "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
-                  }`}
+                <svg
+                  className="w-7 h-7"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
-                  {range}
-                </button>
-              ))}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+              <button
+                onClick={() => alert("Send gold functionality coming soon!")}
+                className="w-full py-3 bg-yellow-500 text-white font-bold rounded-xl hover:bg-yellow-600 transition"
+              >
+                Send Gold
+              </button>
             </div>
-
-            {/* Price info */}
-            <div className="flex justify-between px-2 text-yellow-600 font-semibold mb-2">
-              <span>{priceHistory[priceRange][0].toFixed(2)}</span>
-              <span>{priceHistory[priceRange][1].toFixed(2)}</span>
-              <span>{priceHistory[priceRange][2].toFixed(2)}</span>
-            </div>
-
-            {/* Line Chart - simple svg */}
-            <svg
-              viewBox="0 0 100 30"
-              className="w-full h-10"
-              fill="none"
-              stroke="#fbbf24"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline
-                points="0,30 25,15 50,20 75,5 100,10"
-                className="stroke-current text-yellow-400"
-              />
-              <polyline
-                points={priceHistory[priceRange]
-                  .map((v, i) => `${(i * 100) / 2},${30 - v * 0.4}`)
-                  .join(" ")}
-                stroke="#f59e0b"
-                fill="none"
-              />
-            </svg>
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Bottom fixed bar with Wallet toggle */}
-      {step > 3 && (
-        <div className="fixed bottom-4 left-4 right-4 z-40 flex justify-center">
-          <button
-            onClick={() => setShowWallet(!showWallet)}
-            className="rounded-full bg-yellow-500 text-white w-14 h-14 shadow-lg flex items-center justify-center text-2xl font-bold hover:bg-yellow-600 transition"
-            aria-label="Toggle Wallet Panel"
-          >
-            W
-          </button>
-        </div>
-      )}
+      {/* Footer */}
+      <footer className="text-center text-yellow-600 font-semibold mt-12 text-sm">
+        &copy; 2025 GoldToken. All rights reserved.
+      </footer>
     </div>
   );
 }
