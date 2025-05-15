@@ -66,7 +66,7 @@ export default function GoldTokenPro() {
         "Buy, store, and transact tokenized fiscal gold securely and instantly.",
       icon: (
         <img
-          src="https://cdn-icons-png.flaticon.com/512/196/196566.png"
+          src="https://www.logoai.com/uploads/icon/2017/07/03/14990782657194371.svg"
           alt="Welcome icon"
           className="w-20 h-20 mx-auto mb-6"
           loading="lazy"
@@ -79,7 +79,7 @@ export default function GoldTokenPro() {
         "Your gold is safely stored and can be used anytime for payments or exchanges.",
       icon: (
         <img
-          src="https://cdn-icons-png.flaticon.com/512/616/616408.png"
+          src="https://img.freepik.com/premium-vector/ethereum-vector-coin_1078-322.jpg?semt=ais_hybrid&w=740"
           alt="Store icon"
           className="w-20 h-20 mx-auto mb-6"
           loading="lazy"
@@ -92,7 +92,7 @@ export default function GoldTokenPro() {
         "Watch live gold prices and market trends to make informed decisions.",
       icon: (
         <img
-          src="https://cdn-icons-png.flaticon.com/512/1170/1170678.png"
+          src="https://media.istockphoto.com/id/1325041603/photo/graph-icon.jpg?s=612x612&w=0&k=20&c=JlscaFx5Zd3Bi6dkYMyja-2uVmHxIEgkeH-G5kGeIHk="
           alt="Pricing icon"
           className="w-20 h-20 mx-auto mb-6"
           loading="lazy"
@@ -104,7 +104,7 @@ export default function GoldTokenPro() {
       description: "Let's start buying and selling gold tokens now!",
       icon: (
         <img
-          src="https://cdn-icons-png.flaticon.com/512/748/748122.png"
+          src="https://www.logoai.com/uploads/icon/2017/07/03/14990782657194371.svg"
           alt="Get started icon"
           className="w-20 h-20 mx-auto mb-6"
           loading="lazy"
